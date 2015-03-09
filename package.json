@@ -1,0 +1,24 @@
+{
+  "name": "node-netacuity",
+  "version": "0.0.1",
+  "description": "Module for calling Digital Element's NetAcuity GeoIP Service",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Vibrant-Media/node-netacuity"
+  },
+  "scripts": {
+    "build": "gulp",
+    "test": "gulp test"
+  },
+  "dependencies": {
+    "node-uuid" : "~1.4.3"
+  },
+  "devDependencies": {
+    "gulp": "~3.8.11",
+    "gulp-jshint": "~1.9.2",
+    "gulp-mocha": "~2.0.0",
+    "jshint-stylish": "~1.0.1",
+    "mocha": "~2.2.1",
+    "chai": "~2.1.1"
+  }
+}
