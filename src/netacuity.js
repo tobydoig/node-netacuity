@@ -235,7 +235,7 @@ function NetAcuity(config) {
   }.bind(this));
   
   this.socket.on("error", function onerror(err) {
-    this.socket.close();
+    //this.socket.close();
   }.bind(this));
 
   this.socket.on("listening", function onlistening() {
