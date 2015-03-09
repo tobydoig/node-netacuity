@@ -216,7 +216,7 @@ function NetAcuity(config) {
   this.timeout = config.timeout || DEFAULT_RESPONSE_TIMEOUT;
   this.servers = [];
   this.currentServer = 0;
-  this.transactionsInFlight = new Object();
+  this.transactionsInFlight = {};
   this.socket = dgram.createSocket('udp4');
   this.appId = config.appId || API_ID;
   this.failoverWindow = config.failoverWindow || DEFAULT_FAILOVER_WINDOW;
