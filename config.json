@@ -1,10 +1,10 @@
 {
-  timeout: 100,
-  port: 10000,
-  appId: 2,
-  failoverWindow: 1000,
-  failoverThreshold: 5,
-  servers: [
-    { host: "acuity01", port: 5400 }
+  "timeout": 100,
+  "port": 10000,
+  "appId": 2,
+  "failoverWindow": 1000,
+  "failoverThreshold": 5,
+  "servers": [
+    { "host": "acuity01", "port": 5400 }
   ]
 }
