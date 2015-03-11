@@ -11,7 +11,8 @@
     "test": "gulp test"
   },
   "dependencies": {
-    "node-uuid" : "~1.4.3"
+    "node-uuid" : "~1.4.3",
+    "async-cache" : "~0.1.5"
   },
   "devDependencies": {
     "gulp": "~3.8.11",

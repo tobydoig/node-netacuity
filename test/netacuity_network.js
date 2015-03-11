@@ -1,6 +1,5 @@
 'use strict'
 
-var dgram = require('dgram');
 var assert = require('assert');
 var netacuity = require('../src/netacuity');
 var MockNetAcuityServer = require('./MockNetAcuityServer');
