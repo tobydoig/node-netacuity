@@ -50,7 +50,7 @@ Alternatively you can use the cache implementation.
       }
     });
   
-    cache.get(EXPECTED_IP, function(err, edge) {
+    cache.get('31.24.80.156', function(err, edge) {
       if (err) {
         console.log('Lookup error: %s', err);
       else {
