@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 
 var AsyncCache = require('async-cache');
 var netacuity = require('./netacuity');
@@ -14,9 +14,7 @@ function NetAcuityCache(config) {
     max: config.cache.max || DEFAULT_MAX_ITEMS,
     maxAge: config.cache.maxAge || DEFAULT_MAX_AGE,
     load: function(ip, callback) {
-      this.na.get(ip, function(err, edge) {
-        callback(err, edge);
-      });
+      this.na.get(ip, callback /*(err, edge)*/);
     }.bind(this)
   });
 }

@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 
 var dgram = require('dgram');
 var uuid = require('./uuid');
