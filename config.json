@@ -6,5 +6,9 @@
   "failoverThreshold": 5,
   "servers": [
     { "host": "acuity01", "port": 5400 }
-  ]
+  ],
+  "cache": {
+    "max": 10000,
+    "maxAge": 600000
+  }
 }
