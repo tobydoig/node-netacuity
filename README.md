@@ -77,7 +77,7 @@ describes the various options:
       appId: 3,     //  a numeric value 0..127 to group NetAcuity usage reports against
       failoverWindow: 100,  //  a value in milliseconds in which consecutive request timeouts suggest a failover event
       failoverThreshold: 3,  //  this many requests each within a failoverWindow of each other triggers a failover
-      {
+      cache: {
         max: 10000,     //  for caching, maximum number of entries the cache can hold before less-recently-used items are evicted
         maxAge: 600000  //  for caching, how long something can remain in cache before being expired (in milliseconds)
       }
