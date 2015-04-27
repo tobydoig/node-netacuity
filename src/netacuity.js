@@ -288,12 +288,12 @@ NetAcuity.prototype.generateEdgeMessage = function(ip, transactionId) {
  */
 NetAcuity.prototype.get = function(ip, callback) {
   if (!this.socket) {
-    callback('closed');
+    callback(new Error('netacuity: socket closed'));
     return;
   }
   
   if (this.currentServer < 0) {
-    callback('offline');
+    callback(new Error('netacuity: offline'));
     return;
   }
 
@@ -335,7 +335,7 @@ NetAcuity.prototype.get = function(ip, callback) {
       server.lastTimeout = now;
     }
     
-    callback('timeout');
+    callback(new Error('netacuity: request timeout'));
   }.bind(this), this.timeout);
   //  add a callback into the "inflight" queue that wraps the passed-in callback in one with
   //  a cleanup call
@@ -364,7 +364,7 @@ NetAcuity.prototype.get = function(ip, callback) {
  */
 NetAcuity.prototype.close = function(callback) {
   if (!this.socket) {
-    callback('closed');
+    callback(new Error('netacuity: socket already closed'));
   } else {
     this.socket.close();
     setTimeout(function closeTimeout() {
