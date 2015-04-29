@@ -18,7 +18,7 @@ simple round-robin fashion (ie. when several timeouts happen in close proximity)
     var na = new netacuity.NetAcuity({
       port: 10000,
       appId: 3,
-      servers: [ { host: "acuity01", port: 5400 }, { host: "acuity02", port: 5400 }  ]
+      servers: [ { host: "acuity01", port: 5400 }, { host: "acuity02", port: 5400 }  ],
     });
     
     na.get('31.24.80.156', function(err, edge) {
@@ -76,7 +76,11 @@ describes the various options:
       ],
       appId: 3,     //  a numeric value 0..127 to group NetAcuity usage reports against
       failoverWindow: 100,  //  a value in milliseconds in which consecutive request timeouts suggest a failover event
-      failoverThreshold: 3,  //  this many requests each within a failoverWindow of each other triggers a failover
+      failoverThreshold: 3, //  this many requests each within a failoverWindow of each other triggers a failover
+      dns: {
+        maxAge: 120000, //  cache servers.host DNS lookups (milliseconds)
+        useLookup: true //  see https://github.com/Vibrant-Media/node-dnscache
+      },
       cache: {
         max: 10000,     //  for caching, maximum number of entries the cache can hold before less-recently-used items are evicted
         maxAge: 600000  //  for caching, how long something can remain in cache before being expired (in milliseconds)
@@ -85,5 +89,5 @@ describes the various options:
 
 ### Testing
 
-    npm test
+    gulp test
 

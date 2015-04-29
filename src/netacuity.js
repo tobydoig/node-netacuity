@@ -1,7 +1,10 @@
 'use strict';
 
 var dgram = require('dgram');
+var dns = require('dns');
+var util = require('util');
 var uuid = require('./uuid');
+var DNSCache = require('node-dnscache');
 
 var REGEX_RESPONSE_SPLITTER = /;/g;   //  response is a semi-colon delimited string
 var FEATURE_EDGE_DB = 4;              //  each database has an id, this is the one we use - http://www.digitalelement.com/solutions/netacuity-edge-premium/
@@ -16,6 +19,8 @@ var DEFAULT_OUR_PORT = 10000;         //  the port we send messages from and lis
 var DEFAULT_FAILOVER_WINDOW = 1000;   //  if DEFAULT_FAILOVER_THRESHOLD send response timeouts happen within DEFAULT_FAILOVER_WINDOW then cycle to next server
 var DEFAULT_FAILOVER_THRESHOLD = 5;   //  see DEFAULT_FAILOVER_WINDOW
 var DEFAULT_EDGE_RECORD = [API_VERSION, '', '', '', '', '', '', '', 0, 0.0, 0.0, '', 0, 0, 0, 0, '', 0, '', 0, 0, 0, 0, 0, 'n'];
+var DEFAULT_DNS_MAXAGE = 1000 * 60 * 2;  //  cache dns lookups for this time (milliseconds)
+var DEFAULT_DNS_USE_LOOKUP = true;    //  see https://github.com/Vibrant-Media/node-dnscache
 
 /**
  * Represents an Edge response from a NetAcuity server. To define
@@ -175,7 +180,7 @@ EdgeQuery.parse = function(s) {
  * @param {string} host The host name or IP of the server
  * @param {int} port The port number the server is listening on
  */
-function NetAcuityServer(host, port) {
+function NetAcuityServer(host, port, resolverInterval) {
   this.host = host;
   this.port = port;
   this.lastTimeout = +new Date();
@@ -204,6 +209,10 @@ function NetAcuityServer(host, port) {
  *   appId - An id (int, 0-127) so you can separate out different instances usage in NetAcuity reporting (default 1)
  *   failoverWindow - If 2 queries to the same server fail within this window then a persistent issue is indicated (default 1000 milliseconds)
  *   failoverThreshold - If this many timeouts are seen within failoverWindow then a failover is triggered (default 5)
+ *   dns {
+ *     maxAge - how long to cache dns lookups for in milliseconds (default 2 minutes)
+ *     useLookup - see https://github.com/Vibrant-Media/node-dnscache (default is true)
+ *   }
  *
  * @param {object} config A configuration object (see local config.json for an example)
  */
@@ -211,6 +220,8 @@ function NetAcuity(config) {
   if (!config) {
     throw new Error('missing config');
   }
+  
+  var dnsConfig = config.dns || {};
   
   this.port = config.port || DEFAULT_OUR_PORT;
   this.timeout = config.timeout || DEFAULT_RESPONSE_TIMEOUT;
@@ -221,6 +232,7 @@ function NetAcuity(config) {
   this.appId = config.appId || API_ID;
   this.failoverWindow = config.failoverWindow || DEFAULT_FAILOVER_WINDOW;
   this.failoverThreshold = config.failoverThreshold || DEFAULT_FAILOVER_THRESHOLD;
+  this.dnscache = undefined; // we define it after validating we were passed config.servers
   
   if (!Array.isArray(config.servers)) {
     throw new Error('config.servers should be an array');
@@ -233,6 +245,12 @@ function NetAcuity(config) {
     
     this.servers.push(new NetAcuityServer(server.host, server.port || DEFAULT_NETACUITY_PORT));
   }.bind(this));
+  
+  this.dnscache = new DNSCache({
+    max: this.servers.length + 1, /* adding 1 should be unnecessary but i want to be sure to avoid size evictions */
+    maxAge: dnsConfig.maxAge === undefined ? DEFAULT_DNS_MAXAGE : dnsConfig.maxAge || DEFAULT_DNS_MAXAGE,
+    useLookup: dnsConfig.useLookup === undefined ? DEFAULT_DNS_USE_LOOKUP : !!dnsConfig.useLookup,
+  });
   
   this.socket.on("error", function onerror(err) {
     //this.socket.close();
@@ -310,7 +328,7 @@ NetAcuity.prototype.get = function(ip, callback) {
     delete this.transactionsInFlight[transactionId];
   }.bind(this);
   //  timeout function in case we don't get a response from the server (it being a UDP request)
-  var timer = setTimeout(function onimeout() {
+  var timer = setTimeout(function ontimeout() {
     var now = +new Date();
     cleanup();
     
@@ -346,12 +364,22 @@ NetAcuity.prototype.get = function(ip, callback) {
   
   //  send the message itself.
   //  if we get a socket error our handler below will be called.
-  //  if we don't get a response then our onimeout handler will be called.
+  //  if we don't get a response then our ontimeout handler will be called.
   //  if we do get a response our onmessage handler above will be called.
-  this.socket.send(msg, 0, msg.length, server.port, server.host, function onsend(err) {
+  this.dnscache.get(server.host, function(err, addresses) {
     if (err) {
       cleanup();
       callback(err);
+    } else {
+      //  if DNSCache.config.useLookup = true  -> addresses is a string
+      //  if DNSCache.config.useLookup = false -> addresses is an array of strings
+      var host = util.isArray(addresses) ? addresses[0] : addresses;
+      this.socket.send(msg, 0, msg.length, server.port, host, function onsend(err) {
+        if (err) {
+          cleanup();
+          callback(err);
+        }
+      });
     }
   }.bind(this));
 };
@@ -379,4 +407,3 @@ module.exports = {
   EdgeQuery: EdgeQuery,
   NA_API_5_INDICATOR: NA_API_5_INDICATOR
 };
-
