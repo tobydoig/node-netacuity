@@ -7,6 +7,10 @@
   "servers": [
     { "host": "acuity01", "port": 5400 }
   ],
+  "dns": {
+    "maxAge": 120000,
+    "useLookup": true
+  },
   "cache": {
     "max": 10000,
     "maxAge": 600000
