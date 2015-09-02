@@ -14,7 +14,7 @@
   "dependencies": {
     "node-uuid" : "~1.4.3",
     "async-cache" : "~0.1.5",
-    "node-dnscache": "git+ssh://git@github.com/Vibrant-Media/node-dnscache"
+    "node-dnscache": "git+ssh://git@github.com/Vibrant-Media/node-dnscache#0.0.1"
   },
   "devDependencies": {
     "gulp": "~3.8.11",
