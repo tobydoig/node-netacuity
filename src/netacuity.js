@@ -395,9 +395,21 @@ NetAcuity.prototype.close = function(callback) {
     callback(new Error('netacuity: socket already closed'));
   } else {
     this.socket.close();
-    setTimeout(function closeTimeout() {
-      callback();
-    }.bind(this), this.timeout * 2 + 50); // 50 just for some extra time
+    //  wrap in nextTick() because if our close() is being called inside
+    //  a callback for a message then its transaction still exists in
+    //  transactionsInFlight.
+    process.nextTick(function() {
+      if (Object.keys(this.transactionsInFlight).length > 0) {
+        //  transactions in-flight - give them a chance to finish
+        console.log('draining');
+        setTimeout(function closeTimeout() {
+          callback();
+        }.bind(this), this.timeout * 2 + 50); // 50 just for some extra time
+      } else {
+        //  nothing in-flight, just exit
+        callback();
+      }
+    }.bind(this));
   }
 };
 
