@@ -1,3 +1,8 @@
+/*
+  The MIT License (MIT)
+
+  Copyright (c) 2015 Vibrant Media Ltd
+*/
 'use strict';
 
 var dgram = require('dgram');
@@ -10,7 +15,7 @@ var REGEX_RESPONSE_SPLITTER = /;/g;   //  response is a semi-colon delimited str
 var FEATURE_EDGE_DB = 4;              //  each database has an id, this is the one we use - http://www.digitalelement.com/solutions/netacuity-edge-premium/
 var API_ID = 2;                       //  some value we decide 1..127. intellitxt is using 1 so let's use 2
 var API_VERSION = 5;                  //  found it in the c implementation of netacuity's provided module
-var API_TYPE = 1;                     //  no idea, also ripped from the c module
+var API_TYPE = 1;                     //  can't find explanation in netacuity documentation, ripped the value from the c module
 var NA_API_5_INDICATOR = 32767;       //  magic number to tell us a response is API v5 format
 var MAX_TRANSACTION_ID_LENGTH  = 64;  //  transaction id's are strings
 var DEFAULT_RESPONSE_TIMEOUT = 100;   //  when requesing an ip lookup, if the response takes longer than this then fail
@@ -20,7 +25,7 @@ var DEFAULT_FAILOVER_WINDOW = 1000;   //  if DEFAULT_FAILOVER_THRESHOLD send res
 var DEFAULT_FAILOVER_THRESHOLD = 5;   //  see DEFAULT_FAILOVER_WINDOW
 var DEFAULT_EDGE_RECORD = [API_VERSION, '', '', '', '', '', '', '', 0, 0.0, 0.0, '', 0, 0, 0, 0, '', 0, '', 0, 0, 0, 0, 0, 'n'];
 var DEFAULT_DNS_MAXAGE = 1000 * 60 * 2;  //  cache dns lookups for this time (milliseconds)
-var DEFAULT_DNS_USE_LOOKUP = true;    //  see https://github.com/Vibrant-Media/node-dnscache
+var DEFAULT_DNS_USE_LOOKUP = true;    //  just return 1 address from a dns lookup (see https://github.com/Vibrant-Media/node-dnscache)
 
 /**
  * Represents an Edge response from a NetAcuity server. To define
@@ -153,7 +158,7 @@ function EdgeQuery(appId, ip, transactionId) {
   this.appId = appId;
   this.ip = ip;
   this.transactionId = transactionId;
-};
+}
 
 /**
  * Return a string represetation of this query in a format expected by

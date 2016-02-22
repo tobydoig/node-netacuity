@@ -102,3 +102,5 @@ describes the various options:
 
     gulp test
 
+### License
+MIT

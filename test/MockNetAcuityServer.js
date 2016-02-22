@@ -1,3 +1,8 @@
+/*
+  The MIT License (MIT)
+
+  Copyright (c) 2015 Vibrant Media Ltd
+*/
 'use strict';
 
 var dgram = require('dgram');
@@ -66,6 +71,6 @@ MockNetAcuityServer.prototype.close = function(callback) {
     callback.call(this);
   }.bind(this));  
   this.socket.close();
-}
+};
 
 module.exports = MockNetAcuityServer;
