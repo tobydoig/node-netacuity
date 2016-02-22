@@ -1,3 +1,8 @@
+/*
+  The MIT License (MIT)
+
+  MIT License, Copyright (c) 2015 Vibrant Media Ltd
+*/
 'use strict';
 
 var AsyncCache = require('async-cache');

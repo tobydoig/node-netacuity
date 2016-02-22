@@ -1,10 +1,18 @@
+/*
+  uuid.js
+
+  Copyright (c) 2010-2012 Robert Kieffer
+  MIT License - http://opensource.org/licenses/mit-license.php
+  
+  https://github.com/broofa/node-uuid
+  
+  We use broofa's module but we also wanted to generate UUIDs without the delimiters (dashes) so
+  rather than calling the module then doing a search/replace we lifted the minimal code.
+*/
 'use strict';
 
 var uuid = require('node-uuid');
 
-/**
- * @link https://github.com/broofa/node-uuid/blob/master/uuid.js#L55
- */
 var _byteToHex = [];
 for (var i = 0; i < 256; i++) {
   _byteToHex[i] = (i + 0x100).toString(16).substr(1);

@@ -1,11 +1,13 @@
 {
   "name": "node-netacuity",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Module for calling Digital Element's NetAcuity GeoIP Service",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/Vibrant-Media/node-netacuity"
   },
+  "homepage": "https://github.com/Vibrant-Media/node-netacuity",
   "main": "main.js",
   "scripts": {
     "build": "gulp",
