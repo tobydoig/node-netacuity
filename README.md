@@ -20,6 +20,13 @@ The result is a JSON-formatted netacuity.EdgeRecord but we add a timeTaken prope
     $ node lookup -h acuity01 www.vibrantmedia.com
     Result:  {"apiVersion":5,"ip":"216.137.63.231","transactionId":"8d9e5a50bdaf45439bd91434c1a564ef","error":"","country":"gbr","region":"lnd","city":"london","connectionSpeed":"broadband","metroCode":826044,"latitude":51.5171,"longitude":-0.089804,"postCode":"ec2n 3","countryCode":826,"regionCode":25447,"cityCode":4782,"continentCode":5,"isoCountryCode":"uk","internalCode":1,"areaCodes":"?","countryConfidence":99,"regionConfidence":85,"cityConfidence":80,"postCodeConfidence":30,"gmtOffset":0,"inDst":"n","timeTaken":125}
 
+You can do bulk lookups passing in a comma-separated list of addresses or a text file with one address per line (blanks are skipped).
+There is also simplified output showing just the country code.
+
+    $ node lookup -h acuity01 -s www.vibrantmedia.com,www.wombat.com
+    54.240.166.155 uk
+    52.20.212.120 us
+
 ### Usage
 When instantiating the main NetAcuity object you pass in a config object. This must contain a servers section which tells
 us which servers you want to pass queries to. If you specify multiple entries then failover will be available in a rather
