@@ -4,9 +4,15 @@ There is also a cache client using the "async-cache" module so simultaneous requ
 make one physical request. We also include a command-line tool for perfoming lookups.
 
 ### Installation
-Install the packages:
+To  install the package locally:
 
-    cd /path/to/node-netacuity
+    npm install git+https://github.com/Vibrant-Media/node-netacuity.git
+
+Alterntively you can clone the repo locally and then manually download the dependencies (for dev/testing):
+
+    cd /path/to/target/location
+    git clone https://github.com/Vibrant-Media/node-netacuity.git
+    cd note-netacuity
     npm install
 
 ### Commandline Tool
