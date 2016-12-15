@@ -61,9 +61,8 @@ simple round-robin fashion (ie. when several timeouts happen in close proximity)
 
 Alternatively you can use the cache implementation.
 
-    var NetAcuityCache = require('netacuity-cache');
-
-    var cache = new NetAcuityCache({
+    var netacuity = require('node-netacuity');
+    var cache = new netacuity.NetAcuityCache({
       port: 10000,
       appId: 3,
       servers: [ { host: "acuity01", port: 5400 }, { host: "acuity02", port: 5400 }  ],
@@ -112,6 +111,11 @@ describes the various options:
     };
 
 ### Testing
+You'll need to install gulp
+
+    npm install -g gulp
+
+And then run the tests
 
     gulp test
 
