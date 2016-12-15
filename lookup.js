@@ -3,7 +3,7 @@
 
   Copyright (c) 2016 Vibrant Media Ltd
 */
-'use sctrict';
+'use strict';
 
 var fs = require('fs');
 var async = require('async');
