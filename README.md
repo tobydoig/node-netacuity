@@ -4,9 +4,15 @@ There is also a cache client using the "async-cache" module so simultaneous requ
 make one physical request. We also include a command-line tool for perfoming lookups.
 
 ### Installation
-Install the packages:
+To  install the package locally:
 
-    cd /path/to/node-netacuity
+    npm install git+https://github.com/Vibrant-Media/node-netacuity.git
+
+Alterntively you can clone the repo locally and then manually download the dependencies (for dev/testing):
+
+    cd /path/to/target/location
+    git clone https://github.com/Vibrant-Media/node-netacuity.git
+    cd note-netacuity
     npm install
 
 ### Commandline Tool
@@ -55,9 +61,8 @@ simple round-robin fashion (ie. when several timeouts happen in close proximity)
 
 Alternatively you can use the cache implementation.
 
-    var NetAcuityCache = require('netacuity-cache');
-
-    var cache = new NetAcuityCache({
+    var netacuity = require('node-netacuity');
+    var cache = new netacuity.NetAcuityCache({
       port: 10000,
       appId: 3,
       servers: [ { host: "acuity01", port: 5400 }, { host: "acuity02", port: 5400 }  ],
@@ -106,6 +111,11 @@ describes the various options:
     };
 
 ### Testing
+You'll need to install gulp
+
+    npm install -g gulp
+
+And then run the tests
 
     gulp test
 

@@ -7,7 +7,7 @@
 
 var fs = require('fs');
 var async = require('async');
-var netacuity = require('./src/netacuity.js');
+var netacuity = require('./main.js');
 var DNSCache = require('node-dnscache');
 
 var DEFAULT_NETACUITY_PORT = 5400;
