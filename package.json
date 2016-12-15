@@ -1,5 +1,6 @@
 {
   "name": "node-netacuity",
+  "author": "vibrantmedia",
   "version": "0.0.3",
   "description": "Module for calling Digital Element's NetAcuity GeoIP Service",
   "license": "MIT",
