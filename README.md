@@ -90,10 +90,10 @@ Alternatively you can use the cache implementation.
 The NetAcuityCache implementation exposes very basic stats so you can measure cache effectiveness. Calling the cache.stats() method will return an object containing the stats and will
 also zero the internal counts, so each time you call it the stats reflect what's happened since you last called.
 
-  var stats = cache.stats();
-  console.log('cache was called ' + stats.gets + ' times');
-  console.log('netacuity was called ' + stats.loads + ' times');
-  console.log('cache hit rate is ' + Math.round(stats.loads / stats.gets * 100) + '%');
+    var stats = cache.stats();
+    console.log('cache was called ' + stats.gets + ' times');
+    console.log('netacuity was called ' + stats.loads + ' times');
+    console.log('cache hit rate is ' + Math.round(stats.loads / stats.gets * 100) + '%');
 
 ### Configuration
 Configuration is performed by passing a configuration object to the NetAcuity() constructor. The following
