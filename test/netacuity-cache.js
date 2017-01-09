@@ -30,6 +30,12 @@ describe('NetAcuity-Cache', function() {
         }
       });
       
+      //  stats should be initially 0
+      var stats = cache.stats();
+      assert(stats);
+      assert(!stats.gets);
+      assert(!stats.loads);
+      
       //  perform first lookup
       cache.get(EXPECTED_IP, function(err, edge) {
         assert(!err);
@@ -42,6 +48,18 @@ describe('NetAcuity-Cache', function() {
           cache.get(EXPECTED_IP, function(err, edge) {
             assert(!err);
             assert(edge.ip === EXPECTED_IP);
+
+            //  stats should be 2 gets, 1 load
+            var stats = cache.stats();
+            assert(stats);
+            assert(stats.gets === 2);
+            assert(stats.loads  === 1);
+            
+            //  and retrieving the stats should have now zeroed them
+            stats = cache.stats();
+            assert(stats);
+            assert(!stats.gets);
+            assert(!stats.loads);
             
             //  now shutdown the cache
             cache.close(function() {
