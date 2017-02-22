@@ -10,9 +10,10 @@ var async = require('async');
 var netacuity = require('./main.js');
 var DNSCache = require('node-dnscache');
 
-var DEFAULT_NETACUITY_PORT = 5400;
-var DEFAULT_LISTEN_PORT = 10000;
-var DEFAULT_TIMEOUT = 500;
+const DEFAULT_NETACUITY_PORT = 5400;
+const DEFAULT_LISTEN_PORT = 10000;
+const DEFAULT_TIMEOUT = 500;
+const RE_MACRO_REPLACER = /\{\w+\}/g;
 
 function exitWithBadArgumentsMessage(m) {
   if (m) {
@@ -31,7 +32,9 @@ function exitWithHelpText() {
   console.log('-l  Listen for response on this port (default ' + DEFAULT_LISTEN_PORT + ')');
   console.log('-t  Request timeout in milliseconds (default ' + DEFAULT_TIMEOUT + ')');
   console.log('-f  File containing addresses to lookup, one per line');
+  console.log('-w  Write output to specified file (will overwrite if exists)');
   console.log('-s  Simple output with the address and basic country details separated by spaces');
+  console.log('-o  Specify output format as a string with Edge record field substitution, eg. "{ip} {isoCountryCode} {region} {city}');
   console.log('-i  Ignore errors, show the error message but continue processing remaining addresses');
   console.log('-q  Quiet mode, swallow all errors (overrides -i)');
 }
@@ -45,6 +48,23 @@ function rpad(str, len) {
   return s + str;
 }
 
+function mystat(f) {
+  try {
+    return fs.statSync(f);
+  } catch (ex) {
+    return null;
+  }
+}
+
+function edgeReplacer(edge, s) {
+  return s.replace(RE_MACRO_REPLACER, (match) => {
+    var m = match.substring(1, match.length - 1);
+    if (edge.hasOwnProperty(m)) { return edge[m]; }
+    if (m === 'RAW') { return JSON.stringify(edge); }
+    return match;
+  });
+}
+
 function query(config, addresses) {
   var dnscache = new DNSCache({
     max: 1,
@@ -52,6 +72,25 @@ function query(config, addresses) {
     useLookup: true
   });
   var na = new netacuity.NetAcuity(config.netacuity);
+  const output = ((filename) => {
+    var ws = (filename ? fs.createWriteStream(filename) : undefined);
+    
+    return {
+      err : (err) => {
+        if (!config.quiet) {
+          console.log('ERR - ' + err);
+        }
+      },
+      log : (edge) => {
+        if (ws) {
+          ws.write(edgeReplacer(edge, config.format) + '\n');
+        } else {
+          console.log(edgeReplacer(edge, config.format));
+        }
+      },
+      close : () => { if (ws) { ws.end(); } }
+    };
+  })(config.filename);
   
   async.eachSeries(addresses, function dolookup(address, callback) {
     dnscache.get(address, function(err, address) {
@@ -59,7 +98,7 @@ function query(config, addresses) {
         if (config.quiet) {
           callback();
         } else {
-          console.log('ERR - DNS for ' + address + ': ' + err);
+          output.err('DNS for ' + address + ': ' + err);
           if (config.ignore) {
             callback();
           } else {
@@ -75,7 +114,7 @@ function query(config, addresses) {
             if (config.quiet) {
               callback();
             } else {
-              console.log('ERR - NETACUITY for ' + address + ': ' + err);
+              output.err('NETACUITY for ' + address + ': ' + err);
               if (config.ignore) {
                 callback();
               } else {
@@ -87,17 +126,14 @@ function query(config, addresses) {
           } else {
             var t = +new Date() - start;
             edge.timeTaken = t;
-            if (config.simple) {
-              console.log('%s %s', rpad(address, 16), edge.isoCountryCode);
-            } else {
-              console.log('Result: ', JSON.stringify(edge));
-            }
+            output.log(edge);
             callback();
           }
         });
       }
     });
   }, function done(err) {
+    output.close();
     na.close(function(err) {
       if (err && !config.quiet) {
         console.log('Close error: %s', err);
@@ -108,9 +144,10 @@ function query(config, addresses) {
 
 function processParams(params) {
   var config = {
-    simple: false,
+    format: '{RAW}',
     ignore: false,
     quiet: false,
+    filename: null,
     netacuity: {
       port: DEFAULT_LISTEN_PORT,
       appId: 3,
@@ -124,79 +161,100 @@ function processParams(params) {
   
   var k, v, stat, addresses;
   
-  while (true) {
-    if (!params.length) {
-      if (!addresses) {
-        if (config.quiet) {
-          return;
+  try
+  {
+    while (true) {
+      if (!params.length) {
+        if (!addresses) {
+          if (config.quiet) {
+            return;
+          }
+          return exitWithBadArgumentsMessage("No address specified");
         }
-        return exitWithBadArgumentsMessage("No address specified");
+        
+        async.nextTick(function() {
+          query(config, addresses);
+        });
+        return;
       }
       
-      async.nextTick(function() {
-        query(config, addresses);
-      });
-      return;
-    }
-    
-    k = params.shift();
-    
-    switch (k) {
-      case '--help':
-        return exitWithHelpText();
-      case '-h':
-        v = params.shift();
-        if (v === undefined) { return exitWithBadArgumentsMessage('Missing host'); }
-        config.netacuity.servers[0].host = v;
-        break;
-      case '-p':
-        v = params.shift();
-        if (v === undefined) { return exitWithBadArgumentsMessage('Missing port'); }
-        v = +v;
-        if (isNaN(v)) { return exitWithBadArgumentsMessage('Invalid port'); }
-        config.netacuity.servers[0].port = v;
-        break;
-      case '-l':
-        v = params.shift();
-        if (v === undefined) { return exitWithBadArgumentsMessage('Missing port'); }
-        v = +v;
-        if (isNaN(v)) { return exitWithBadArgumentsMessage('Invalid port'); }
-        config.netacuity.port = v;
-        break;
-      case '-t':
-        v = params.shift();
-        if (v === undefined) { return exitWithBadArgumentsMessage('Missing timeout'); }
-        v = +v;
-        if (isNaN(v)) { return exitWithBadArgumentsMessage('Invalid timeout'); }
-        config.netacuity.timeout = v;
-        break;
-      case '-f':
-        v = params.shift();
-        if (v === undefined) { return exitWithBadArgumentsMessage('Missing filename'); }
-        stat = fs.statSync(v);
-        if (!stat) { return exitWithBadArgumentsMessage('Failed to stat file'); }
-        if (!stat.isFile()) { return exitWithBadArgumentsMessage('Not a file'); }
-        v = fs.readFileSync(v);
-        if (!v || !v.length) { return exitWithBadArgumentsMessage('Empty file'); }
-        addresses = v.toString().split(/\s+/g).filter(function(s) { return !!s.length; });
-        break;
-      case '-s':
-        config.simple = true;
-        break;
-      case '-i':
-        config.ignore = true;
-        break;
-      case '-q':
-        config.quiet = true;
-        break;
-      default:
-        if (k[0] === '-') { return exitWithBadArgumentsMessage('Unrecognised parameter: ' + k); }
-        if (params.length > 0) { return exitWithBadArgumentsMessage('Address expected to be last parameter'); }
-        if (addresses) { return exitWithBadArgumentsMessage('Addresses already specified by -f'); }
-        addresses = k.split(/,/).filter(function(s) { return !!s.length; });
-        break;
+      k = params.shift();
+      
+      switch (k) {
+        case '--help':
+          return exitWithHelpText();
+        case '-h':
+          v = params.shift();
+          if (v === undefined) { return exitWithBadArgumentsMessage('Missing host'); }
+          config.netacuity.servers[0].host = v;
+          break;
+        case '-p':
+          v = params.shift();
+          if (v === undefined) { return exitWithBadArgumentsMessage('Missing port'); }
+          v = +v;
+          if (isNaN(v)) { return exitWithBadArgumentsMessage('Invalid port'); }
+          config.netacuity.servers[0].port = v;
+          break;
+        case '-l':
+          v = params.shift();
+          if (v === undefined) { return exitWithBadArgumentsMessage('Missing port'); }
+          v = +v;
+          if (isNaN(v)) { return exitWithBadArgumentsMessage('Invalid port'); }
+          config.netacuity.port = v;
+          break;
+        case '-t':
+          v = params.shift();
+          if (v === undefined) { return exitWithBadArgumentsMessage('Missing timeout'); }
+          v = +v;
+          if (isNaN(v)) { return exitWithBadArgumentsMessage('Invalid timeout'); }
+          config.netacuity.timeout = v;
+          break;
+        case '-w':
+          v = params.shift();
+          if (v === undefined) { return exitWithBadArgumentsMessage('Missing filename for -w'); }
+          stat = mystat(v);
+          if (stat && stat.isDirectory()) { return exitWithBadArgumentsMessage('Filename expected, directory given for -w'); }
+          config.filename = v;
+          break;
+        case '-f':
+          v = params.shift();
+          if (v === undefined) { return exitWithBadArgumentsMessage('Missing filename for -f'); }
+          stat = mystat(v);
+          if (!stat) { return exitWithBadArgumentsMessage('Failed to stat file'); }
+          if (!stat.isFile()) { return exitWithBadArgumentsMessage('Not a file'); }
+          v = fs.readFileSync(v);
+          if (!v || !v.length) { return exitWithBadArgumentsMessage('Empty file'); }
+          addresses = v.toString().split(/\s+/g).filter(function(s) { return !!s.length; });
+          break;
+        case '-s':
+          config.format = '{ip} {isoCountryCode}';
+          break;
+        case '-o':
+          v = params.shift();
+          if (v === undefined) { return exitWithBadArgumentsMessage('Missing format for -o'); }
+          config.format = v;
+          break;
+        case '-i':
+          config.ignore = true;
+          break;
+        case '-q':
+          config.quiet = true;
+          break;
+        default:
+          if (k[0] === '-') { return exitWithBadArgumentsMessage('Unrecognised parameter: ' + k); }
+          if (params.length > 0) { return exitWithBadArgumentsMessage('Address expected to be last parameter'); }
+          if (addresses) { return exitWithBadArgumentsMessage('Addresses already specified by -f'); }
+          addresses = k.split(/,/).filter(function(s) { return !!s.length; });
+          break;
+      }
     }
   }
+  catch (ex) {
+    if (!config.quiet) {
+      console.log('ERROR: ' + ex);
+    }
+  }
+  
 }
 
 processParams(process.argv.slice(2)); //first 2 params are node binary and our script

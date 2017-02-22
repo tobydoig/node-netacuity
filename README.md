@@ -33,6 +33,10 @@ There is also simplified output showing just the country code.
     54.240.166.155 uk
     52.20.212.120 us
 
+And you can write the output to a file, and also specify the format of the output:
+
+    $ node lookup -h acuity01 -o "{ip} {isoCountryCode} {city} {region} {regionConfidence}" -f ips.txt -w output.txt
+    
 ### Usage
 When instantiating the main NetAcuity object you pass in a config object. This must contain a servers section which tells
 us which servers you want to pass queries to. If you specify multiple entries then failover will be available in a rather
