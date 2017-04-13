@@ -238,6 +238,8 @@ function NetAcuity(config) {
   this.failoverWindow = config.failoverWindow || DEFAULT_FAILOVER_WINDOW;
   this.failoverThreshold = config.failoverThreshold || DEFAULT_FAILOVER_THRESHOLD;
   this.dnscache = undefined; // we define it after validating we were passed config.servers
+  this.statsTimeouts = 0;
+  this.statsReceivedAfterTimeout = 0;
   
   if (!Array.isArray(config.servers)) {
     throw new Error('config.servers should be an array');
@@ -286,8 +288,22 @@ function NetAcuity(config) {
       callback(edge.error.length ? edge.error : undefined, edge);
     } else {
       //console.log('No transaction found for %s', edge.transactionId);
+      ++this.statsReceivedAfterTimeout;
     }
   }.bind(this));
+  
+  this.stats = function() {
+    var s = {
+      inFlight : Object.keys(this.transactionsInFlight).length,
+      timeouts : this.statsTimeouts,
+      receivedAfterTimeout : this.statsReceivedAfterTimeout
+    };
+    
+    this.statsTimeouts = 0;
+    this.statsReceivedAfterTimeout = 0;
+    
+    return s;
+  }
 }
 
 /**
@@ -336,6 +352,8 @@ NetAcuity.prototype.get = function(ip, callback) {
   var timer = setTimeout(function ontimeout() {
     var now = +new Date();
     cleanup();
+    
+    ++this.statsTimeouts;
     
     //  failover handling.
     //  if the current server is the same one this request was sent to
