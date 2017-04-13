@@ -41,10 +41,10 @@ NetAcuityCache.prototype.close = function(callback) {
 };
 
 NetAcuityCache.prototype.stats = function() {
-  var s = {
-    gets: this.statsGets,
-    loads: this.statsLoads
-  };
+  var s = this.na.stats();
+  
+  s.gets = this.statsGets;
+  s.loads = this.statsLoads;
   
   this.statsGets = 0;
   this.statsLoads = 0;

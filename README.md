@@ -98,6 +98,8 @@ also zero the internal counts, so each time you call it the stats reflect what's
     console.log('cache was called ' + stats.gets + ' times');
     console.log('netacuity was called ' + stats.loads + ' times');
     console.log('cache hit rate is ' + Math.round(stats.loads / stats.gets * 100) + '%');
+    console.log('there are ' + stats.inFlight + ' requests in flight');
+    console.log(stats.timeouts + ' requests timed out and ' + stats.receivedAfterTimeout + ' results were received after timing out');
 
 ### Configuration
 Configuration is performed by passing a configuration object to the NetAcuity() constructor. The following
